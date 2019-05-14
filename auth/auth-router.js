@@ -25,6 +25,11 @@ router.post('/login', (req, res) => {
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
+        // req.session is an objec added by the session middleware
+        // we can store information inside req.session
+        // req.session is available on every request done by the same client
+        // as long as the user session has not expired
+        req.session.user =  user,
         res.status(200).json({
           message: `Welcome ${user.username}!`,
         });
@@ -36,5 +41,22 @@ router.post('/login', (req, res) => {
       res.status(500).json(error);
     });
 });
+
+router.get('/logout', (req, res)=>{
+  if(req.session) {
+    //the library exposes the destroy method that will remove the session for the client
+    req.session.destroy(err => {
+      if(err) {
+        res.send('Checking out, but can not leave')
+      } else {
+        res.send('See ya next time!')
+      }
+    })
+  } else {
+    //if there is no session, just end the requst or send a response
+    //here, just end the request
+    res.end();
+  }
+})
 
 module.exports = router;
